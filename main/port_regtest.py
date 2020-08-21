@@ -159,7 +159,7 @@ class bbg_mgr():
     set_machine = 'PROD'
     
     def __init__(self,r,check,tmp,ptf,bmk,tab,subt,view,day,
-                 ccy,bkdn,model,unit,clvl,hz,scen,m1,m2):
+                 ccy,bkdn,model,unit,clvl,hz,scen,m1,m2,reset):
         
         self.r = r
         self.check = check
@@ -179,6 +179,7 @@ class bbg_mgr():
         self.scen = scen
         self.m1 = m1
         self.m2 = m2
+        self.reset = reset
     
     def press_go(self):
         pag.press('enter')
@@ -186,12 +187,15 @@ class bbg_mgr():
         time.sleep(t*1)
         
     def iter_tab(self, n):
-        #fix to manage risk model version dropdown in TE tab
-        if self.tab == 'TE' and n > 5:
-            n = n + 1
-        else:
-            pass
-        #end fix - to be dropped when MAC3 is fully implemented on all tabs
+      #fix to manage risk model version dropdown
+        if self.tab in ['TE','VR','SA']:
+            #skip dropdown if in QA window
+            if self.set_machine == 'QA' and n > 5:
+                n = n + 1
+            #skip dropdown also if in PROD TE window
+            elif self.tab == 'TE' and n > 5:
+                n = n + 1
+     #end fix - to be dropped when MAC3 is fully implemented on all tabs
         for _ in itertools.repeat(None, n):
             time.sleep(t*0.2)
             pag.press('tab')
@@ -388,6 +392,8 @@ class bbg_mgr():
                 time.sleep(t*1)
                 self.press_go()
                 #fix for bug in attribution tab
+                '''
+                time.sleep(5)
                 yesterday = datetime.now() - timedelta(days=30)
                 day = yesterday.strftime("%D")
                 mm = day.split('/')[0]
@@ -403,6 +409,7 @@ class bbg_mgr():
                 self.press_go()
             else:
                 pass
+                '''
             
     def change_scen(self, n):
         if self.scen == 'Default':
@@ -416,7 +423,7 @@ class bbg_mgr():
                 self.press_go()
             else:
                 pass
-                
+                       
     def export(self):
         if self.set_machine == 'PROD':
             win.open_bbg_1()
@@ -725,10 +732,19 @@ class bbg_mgr():
         self.change_clvl(10)
         self.change_hz(10)
         self.change_attrb(12)
+                          
+    def reset_block(self):
+        if self.reset == 'n':
+            pass
+        else:
+            self.setup_PORT_UI()
            
     def PROD_vs_QA(self, r):
+        self.reset_block()
+        self.set_machine = 'PROD'
         win.open_bbg_1()
         self.modify_PORT_UI()
+        self.set_machine = 'QA'
         win.open_bbg_2()
         self.modify_PORT_UI()
         self.set_machine = 'PROD'
@@ -1011,27 +1027,28 @@ class worker():
                                           df_custom.iloc[r,15],
                                           df_custom.iloc[r,18],
                                       str(df_custom.iloc[r,19]),
-                                      str(df_custom.iloc[r,20])
+                                      str(df_custom.iloc[r,20]),
+                                      str(df_custom.iloc[r,17]) 
                                  )
                 #launch new ptf/view only when starting new ptf block or if previous iteration failed
                 if r - block_len == 0 or last_iter_failed == 'y':
                     last_iter_failed = 'n'
                     launch.setup_PORT_UI()
-                #try:
+                try:
                     #run all rows in the ptf block
-                launch.PROD_vs_QA(r)
+                    launch.PROD_vs_QA(r)
                 #manage exceptions
-                #except Exception as e:
-                    #if str(e) == 'Can only compare identically-labeled DataFrame objects':
-                        #launch.err_handler(r)   
-                    #elif str(e).split(' ')[0] == 'PyAutoGUI':
-                       # launch.err_handler_manual(r)
-                       # break
-                    #elif str(e) == 'Can only use .str accessor with string values!':
-                      #  pass
-                    #else:
-                       # launch.iteration_err_handler(r)
-                       # last_iter_failed = 'y'
+                except Exception as e:
+                    if str(e) == 'Can only compare identically-labeled DataFrame objects':
+                        launch.err_handler(r)   
+                    elif str(e).split(' ')[0] == 'PyAutoGUI':
+                        launch.err_handler_manual(r)
+                        break
+                    elif str(e) == 'Can only use .str accessor with string values!':
+                        pass
+                    else:
+                        launch.iteration_err_handler(r)
+                        last_iter_failed = 'y'
                 #save result template after each iteration
                 workbook.save(final_file)
             #increase r variable to correctly retrieve/recap data by blocks
