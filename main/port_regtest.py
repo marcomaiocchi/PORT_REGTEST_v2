@@ -11,7 +11,6 @@ import os
 import PIL
 import csv
 import time
-global shell
 import string
 import openpyxl
 import datetime
@@ -39,7 +38,7 @@ from openpyxl.formatting.rule import ColorScaleRule, CellIsRule, FormulaRule
 from openpyxl.styles import Alignment, Border, Side, Font, Color, PatternFill
 
 #control speed (put a value between 0.8 - 1.2)
-t = 0.9
+t = 1
 
 #files download folder of the bloomberg terminal
 download_dir = "C:\\blp\\data\\"
