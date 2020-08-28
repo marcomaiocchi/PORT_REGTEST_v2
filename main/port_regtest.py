@@ -44,12 +44,12 @@ from openpyxl.styles import Alignment, Border, Side, Font, Color, PatternFill
 t = 1
 
 #files download folder of the bloomberg terminal
-download_dir = "C:\\blp\\data\\"
-#download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
+#download_dir = "C:\\blp\\data\\"
+download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
 
 #set as 'traveler' if excel files don't close while running
-username = "Marco"
-#username = "traveler"
+#username = "Marco"
+username = "traveler"
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -112,7 +112,7 @@ class window_mgr():
 
     def set_foreground_k(self):   
         shell = win32com.client.Dispatch("WScript.Shell")
-        shell.SendKeys('')
+        shell.SendKeys(' ')
         win32gui.SetForegroundWindow(self._handle)
         time.sleep(t*1)
     
