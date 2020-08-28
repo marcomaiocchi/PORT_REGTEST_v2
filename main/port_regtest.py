@@ -37,16 +37,19 @@ from openpyxl.styles.differential import DifferentialStyle
 from openpyxl.formatting.rule import ColorScaleRule, CellIsRule, FormulaRule
 from openpyxl.styles import Alignment, Border, Side, Font, Color, PatternFill
 
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
 #control speed (put a value between 0.8 - 1.2)
 t = 1
 
 #files download folder of the bloomberg terminal
-#download_dir = "C:\\blp\\data\\"
-download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
+download_dir = "C:\\blp\\data\\"
+#download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
 
 #set as 'traveler' if excel files don't close while running
-#username = "Marco"
-username = "traveler"
+username = "Marco"
+#username = "traveler"
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -119,27 +122,22 @@ class window_mgr():
     def open_bbg_1(self):
         win.find_window_wildcard("1-BLOOMBERG")
         win.set_foreground_k()
-        time.sleep(t*1)
+        time.sleep(t*0.5)
         
     def open_bbg_2(self):
         win.find_window_wildcard("2-BLOOMBERG")
         win.set_foreground_k()
-        time.sleep(t*1)
+        time.sleep(t*0.5)
         
     def open_bbg_3(self):
         win.find_window_wildcard("3-BLOOMBERG")
         win.set_foreground_k()
-        time.sleep(t*1)
+        time.sleep(t*0.5)
         
     def open_bbg_4(self):
         win.find_window_wildcard("4-BLOOMBERG")
         win.set_foreground_k()
-        time.sleep(t*1)
-        
-    def open_notepad(self):
-        win.find_window_wildcard(".*Notepad.*")
-        win.set_foreground_k()
-        time.sleep(t*1)
+        time.sleep(t*0.5)
         
     def open_excel_file(self):
         win.find_window_wildcard(".*grid.*")
@@ -156,11 +154,11 @@ win = window_mgr()
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
             
 class bbg_mgr():
+
     
-    set_machine = 'PROD'
-    
-    def __init__(self,r,check,tmp,ptf,bmk,tab,subt,view,day,
-                 ccy,bkdn,model,unit,clvl,hz,scen,m1,m2,reset):
+    def __init__(self,r=None,check=None,tmp=None,ptf=None,bmk=None,tab=None,
+                 subt=None,view=None,day=None,ccy=None,bkdn=None,model=None,
+                 unit=None,clvl=None,hz=None,scen=None,m1=None,m2=None):
         
         self.r = r
         self.check = check
@@ -180,73 +178,58 @@ class bbg_mgr():
         self.scen = scen
         self.m1 = m1
         self.m2 = m2
-        self.reset = reset
     
     def press_go(self):
         pag.press('enter')
         pag.press('enter')
-        time.sleep(t*1)
+        time.sleep(t*0.75)
+    
+    def test(self):
+        win.open_bbg_1()
+        pag.write('THIS IS JUST A TEST. ')
+        time.sleep(3)
+        pag.write('CANCELLING IN 5 SECONDS...')
+        time.sleep(5)
+        pag.press('esc')
+        pag.press('esc')
         
+    def bbg_fnc(self, fnc):
+        win.open_bbg_1()
+        pag.write(fnc)
+        self.press_go()
+    
     def iter_tab(self, n):
-      #fix to manage risk model version dropdown
-        if self.tab in ['TE','VR','SA']:
-            #skip dropdown if in QA window
-            if self.set_machine == 'QA' and n > 5:
-                n = n + 1
-            #skip dropdown also if in PROD TE window
-            elif self.tab == 'TE' and n > 5:
-                n = n + 1
-     #end fix - to be dropped when MAC3 is fully implemented on all tabs
         for _ in itertools.repeat(None, n):
-            time.sleep(t*0.2)
+            time.sleep(t*0.25)
             pag.press('tab')
-            
+    
     def select_ptf(self):
-        time.sleep(t*1)
         pag.write(self.ptf)
-        time.sleep(t*1)
+        time.sleep(t*0.5)
         pag.press('f12')
         self.press_go()
-        time.sleep(t*3)
+        
+    def select_ptf_prod(self):
+        win.open_bbg_1()
+        self.select_ptf()
     
-    def open_prod(self):
-        time.sleep(t*1)
-        pag.write("PORT" + " V " + self.view + " /QA")
-        self.press_go()
-        time.sleep(t*5)
+    def select_ptf_qa(self):
+        win.open_bbg_2()
+        self.select_ptf()
     
-    def open_qa(self):
-        time.sleep(t*1)
-        pag.write("RRRR PORT " + self.m2 + " V " + self.view + " /QA")
+    def open_PORT_prod(self):
+        win.open_bbg_1()
+        time.sleep(t*0.5)
+        pag.write("PORT " + self.tab + " V " + self.view + " /QA")
         self.press_go()
-        time.sleep(t*5)
     
-    def change_tab(self):
+    def open_PORT_qa(self):
+        win.open_bbg_2()
         time.sleep(t*0.5)
-        if self.view[0:2] in ['RS','V8']:
-            if self.tab == 'VR':
-                pag.write('20')
-            elif self.tab == 'TE':
-                pag.write('21')
-            elif self.tab == 'PA':
-                pag.write('22')
-            elif self.tab == 'SA':
-                pag.write('23')
-        else:
-            if self.tab == 'HD':
-                pag.write('20')
-            elif self.tab == 'CH':
-                pag.write('21')
-            elif self.tab == 'HP':
-                pag.write('22')
-            elif self.tab == 'PA':
-                pag.write('23')  
-        time.sleep(t*0.5)
+        pag.write("RRRR PORT " + self.m2 + " " + self.tab + " V " + self.view + " /QA")
         self.press_go()
-        time.sleep(t*0.5)
         
     def change_subtab(self):
-        time.sleep(t*0.5)
         if self.tab == 'HP':
             if self.subt == 'MainView':
                 pag.write('30')
@@ -273,9 +256,19 @@ class bbg_mgr():
                 pag.write('35')
         time.sleep(t*0.5)
         self.press_go()
-        time.sleep(t*0.5)
+        time.sleep(t*2)
         
+    def change_subtab_prod(self):
+        win.open_bbg_1()
+        self.change_subtab()
         
+    def change_subtab_qa(self):
+        win.open_bbg_2()
+        self.change_subtab()
+        time.sleep(2)
+    
+#CHANGE_WIDGETS FUNCTIONS ARE ALL DEPRECATED
+
     def change_bmk(self, n):
         if self.bmk == "Default":
             pass
@@ -285,8 +278,7 @@ class bbg_mgr():
             pag.write(self.bmk)
             time.sleep(t*1)
             self.press_go()
-            
-            
+                 
     def change_bkdn(self, n):
         if self.bkdn == "Default":
             pass
@@ -393,7 +385,6 @@ class bbg_mgr():
                 time.sleep(t*1)
                 self.press_go()
                 #fix for bug in attribution tab
-                '''
                 time.sleep(5)
                 yesterday = datetime.now() - timedelta(days=30)
                 day = yesterday.strftime("%D")
@@ -410,8 +401,8 @@ class bbg_mgr():
                 self.press_go()
             else:
                 pass
-                '''
-            
+               
+                
     def change_scen(self, n):
         if self.scen == 'Default':
             pass
@@ -424,9 +415,92 @@ class bbg_mgr():
                 self.press_go()
             else:
                 pass
-                       
-    def export(self):
-        if self.set_machine == 'PROD':
+
+#END OF DEPRECATION
+    
+    def setup_all_widgets(self, machine):
+        dropdown_values_list = [
+                                    self.bmk,
+                                    self.bkdn,
+                                    self.ccy,
+                                    self.day,
+                                    self.model,
+                                    self.unit,
+                                    self.hz,
+                                    self.clvl,
+                                    self.scen
+                                ]
+
+        if self.tab in ['HD','HP', 'CH']:
+            final_values_list = dropdown_values_list[0:4]
+        if self.tab == 'PA':
+            final_values_list = dropdown_values_list[0:5]
+        if self.tab == 'TE':
+            final_values_list = dropdown_values_list[0:7]
+        if self.tab == 'VR':
+            final_values_list = dropdown_values_list[0:6] + [dropdown_values_list[7]] + [dropdown_values_list[6]]
+        if self.tab == 'SA':
+            final_values_list = dropdown_values_list[0:5] + [dropdown_values_list[8]]
+
+        if final_values_list.count('Default') - len(final_values_list) != 0:
+            self.iter_tab(2)
+            for i in range(0, len(final_values_list)):
+
+                    '''handle exceptions'''
+                    #handle start date in PA tab
+                    if self.tab == 'PA' and i == 3:
+                        self.iter_tab(4)
+                    #handle day dropdown when prev_close
+                    if i == 3 and final_values_list[i] == 'Default':
+                        self.iter_tab(2)
+                    #handle V8 dropdown until it's confirmed
+                    if i == 4 and self.tab in ['TE','VR','SA']:
+                        if self.tab == 'TE':
+                            self.iter_tab(1)
+                        elif self.tab != 'TE' and machine == 'QA':
+                            self.iter_tab(1)
+                        else:
+                            pass
+                    '''end of exceptions'''
+
+                    #IF VALUE IS NOT DEFAULT
+                    if final_values_list[i] != 'Default':
+                        #handle day typing
+                        if i == 3:
+                            mm = self.day[0:2]
+                            dd = self.day[3:5]
+                            yy = self.day[6:8]
+                            pag.write(mm)
+                            time.sleep(0.5)
+                            pag.write(dd)
+                            time.sleep(0.5)
+                            pag.write(yy)
+                            time.sleep(0.5)
+                            if self.tab != 'TE':
+                                self.iter_tab(1)
+                        else:
+                            if final_values_list[i] == final_values_list[-1]:
+                                pag.write(final_values_list[i])
+                            else:
+                                pag.write(final_values_list[i])
+                                self.iter_tab(1)
+                    #IF VALUE IS DEFAULT    
+                    else:
+                        self.iter_tab(1)
+
+    def setup_widgets_prod(self):
+        win.open_bbg_1()
+        self.setup_all_widgets('PROD')
+        self.press_go()
+        time.sleep(2)
+        
+    def setup_widgets_qa(self):
+        win.open_bbg_2()
+        self.setup_all_widgets('QA')
+        self.press_go()
+    
+    def export(self, machine):
+        if machine == 'PROD':
             win.open_bbg_1()
         else:
             win.open_bbg_2()
@@ -447,7 +521,7 @@ class bbg_mgr():
             pag.write('2')
             self.press_go()
         time.sleep(t*5)
-                               
+        
     def closeExcel(self):
         if self.tmp == 'Current Tab (Unformatted xls)': 
             win.open_excel_file()
@@ -456,7 +530,6 @@ class bbg_mgr():
                 pag.hotkey('ctrl','fn', 'f4')
             else:    
                 pag.hotkey('ctrl', 'f4')
-            time.sleep(t*1)
             try:
                 win.open_excel_file()
                 time.sleep(1)
@@ -464,7 +537,6 @@ class bbg_mgr():
                     pag.hotkey('ctrl','fn', 'f4')
                 else:    
                     pag.hotkey('ctrl', 'f4')
-                time.sleep(t*1)
             except:
                 pass
         else:
@@ -474,7 +546,6 @@ class bbg_mgr():
                 pag.hotkey('alt','fn', 'f4')
             else:    
                 pag.hotkey('alt', 'f4')
-            time.sleep(t*1)
             try:
                 win.open_excel_file()
                 time.sleep(1)
@@ -482,11 +553,11 @@ class bbg_mgr():
                     pag.hotkey('alt','fn', 'f4')
                 else:    
                     pag.hotkey('alt', 'f4')
-                time.sleep(t*1)
             except:
                 pass
+        time.sleep(2)
                           
-    def export_mainview(self):
+    def export_mainview(self, machine):
         while True:
             try:
                 x = 0
@@ -513,7 +584,7 @@ class bbg_mgr():
                           str(sheet['E2'].value)) == 'NoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNone' and y < 10 :
                     y = y + 1
                     self.closeExcel()
-                    self.export()
+                    self.export(machine)
                     x = 0
                     while x < 5:
                         try:
@@ -537,7 +608,7 @@ class bbg_mgr():
             except:
                 break
     
-    def export_else(self):
+    def export_else(self, machine):
         export_iter = 0
         while export_iter < 5:
             export_iter = export_iter +  1
@@ -565,7 +636,7 @@ class bbg_mgr():
                           str(sheet['D4'].value)) == 'NoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNone' and y < 10 :
                     y = y + 1
                     self.closeExcel()
-                    self.export()
+                    self.export(machine)
                     z = 0
                     while z < 5:
                         z = z + 1
@@ -586,7 +657,7 @@ class bbg_mgr():
                     pass
                 break
             else:
-                self.export()
+                self.export(machine)
                 time.sleep(t*5)
                 continue
                            
@@ -601,17 +672,25 @@ class bbg_mgr():
             except:
                 continue
                                   
-    def export_loop(self):
+    def export_loop(self, machine):
         #this contains all loops to export PORT reports
         if self.tmp == 'Current Tab (Unformatted xls)':
             if self.subt == 'MainView':
-                self.export_mainview()
+                self.export_mainview(machine)
             else:
-                self.export_else()                  
+                self.export_else(machine)                  
         else:
             self.export_formatted()
-                            
-    def dumpXLS1(self, _id):
+            
+    def export_prod(self):
+        self.export('PROD')
+        self.export_loop('PROD')
+        
+    def export_qa(self):
+        self.export('QA')
+        self.export_loop('QA')
+        
+    def save_XLS_prod(self, _id):
         if self.tmp == 'Current Tab (Unformatted xls)': 
             time.sleep(t*1)
             file = win32gui.GetWindowText(win32gui.GetForegroundWindow()).split()[0]
@@ -628,7 +707,7 @@ class bbg_mgr():
             wb.SaveAs(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx',
                       FileFormat = 51)
         
-    def dumpXLS2(self, _id):
+    def save_XLS_qa(self, _id):
         if self.tmp == 'Current Tab (Unformatted xls)': 
             time.sleep(t*1)
             file = win32gui.GetWindowText(win32gui.GetForegroundWindow()).split()[0]
@@ -713,50 +792,22 @@ class bbg_mgr():
         workbook['Results']['C' + str(r+5)].value = round(perc_err,2)
     
     def setup_PORT_UI(self):
-        win.open_bbg_1()
-        self.select_ptf()
-        self.open_prod()
-        win.open_bbg_2()
-        self.select_ptf()
-        self.open_qa()
-    
-    def modify_PORT_UI(self):
-        self.change_tab()
-        self.change_subtab()
-        self.change_bmk(2)
-        self.change_bkdn(3)
-        self.change_ccy(4)
-        self.change_day(5)
-        self.change_model(8)
-        self.change_unit(9)
-        self.change_scen(9)
-        self.change_clvl(10)
-        self.change_hz(10)
-        self.change_attrb(12)
-                          
-    def reset_block(self):
-        if self.reset == 'n':
-            pass
-        else:
-            self.setup_PORT_UI()
+        self.select_ptf_prod()
+        self.open_PORT_prod()
+        self.select_ptf_qa()
+        self.open_PORT_qa()
+        time.sleep(5)
            
     def PROD_vs_QA(self, r):
-        self.reset_block()
-        self.set_machine = 'PROD'
-        win.open_bbg_1()
-        self.modify_PORT_UI()
-        self.set_machine = 'QA'
-        win.open_bbg_2()
-        self.modify_PORT_UI()
-        self.set_machine = 'PROD'
-        self.export()
-        self.export_loop()
-        self.dumpXLS1(r)
+        self.change_subtab_prod()
+        self.change_subtab_qa()
+        self.setup_widgets_prod()
+        self.setup_widgets_qa()
+        self.export_prod()
+        self.save_XLS_prod(r)
         self.closeExcel()
-        self.set_machine = 'QA'
-        self.export()
-        self.export_loop()
-        self.dumpXLS2(r)
+        self.export_qa()
+        self.save_XLS_qa(r)
         self.closeExcel()
         self.df_comparison(r)
         self.dump_results_to_excel(r)
@@ -805,6 +856,22 @@ class bbg_mgr():
         workbook['Results']['B' + str(r+5)].value = str(r) + '_' + self.check + '_' + self.ptf + '_' + self.tab + '_' + self.subt
         workbook['Results']['C' + str(r+5)].value = 'Something went wrong'
 
+#DEPRECATED TOGETHER WITH ALL ITS FUNCTIONS
+
+    def modify_PORT_UI(self): 
+        self.change_subtab()
+        self.change_bmk(2)
+        self.change_bkdn(3)
+        self.change_ccy(4)
+        self.change_day(5)
+        self.change_model(8)
+        self.change_unit(9)
+        self.change_scen(9)
+        self.change_clvl(10)
+        self.change_hz(10)
+        self.change_attrb(12)
+        
+#END OF DEPRECATION
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
         
@@ -832,7 +899,6 @@ class UI:
     tmp_list = ['Current Tab (Unformatted xls)', 'Current Tab (xls)']
     scen_list = ['Default','All Scenarios', 'Equity Markets', 'Greece', 'Libya', 'Russian', 'Japan','Lehman']
 
-    
     tests_type = widgets.Dropdown(
         options=test_type,
         description='Input : ',
@@ -970,11 +1036,11 @@ class worker():
         workbook = Workbook()
         create_folders()
         create_template()
-        final_file = path_results + '\\final_report' + str(datetime.now().strftime("%H%M")) + '.xlsx'
+        final_file = path_results + '\\final_report_' + str(datetime.now().strftime("%H%M")) + '.xlsx'
+        #take input data (df_custom) either from the control_file or from the app UI
         if UI.tests_type.value in ['CUSTOM','NXQC','RISK','HIPPO']:
             xls = pd.ExcelFile(path + "\\Control_file.xlsx")
             df_custom = pd.read_excel(xls, UI.tests_type.value)
-            blocks = df_custom['Portfolio'].value_counts().index.to_list()
         else:
             df_dict = {
                               "Test": '',
@@ -1003,13 +1069,16 @@ class worker():
             df_dict = pd.DataFrame(df_dict.items()).T
             df_dict.columns = df_dict.iloc[0]
             df_custom = df_dict.drop(0)
-            blocks = df_custom['Portfolio'].value_counts().index.to_list()
-        #a block is a subset of the control file containing all rows from one ptf
+            
+        #a block is a subset of the control file containing all rows with same ptf/view/tab
+        df_custom['filter'] = df_custom['Portfolio'] + df_custom['View'] + df_custom['Tab'] 
+        blocks = df_custom['filter'].value_counts().index.to_list()
         block_len = 0
         last_iter_failed = 'n'
         for block in blocks:
-            ptf_block = df_custom[df_custom['Portfolio'] == block]
+            ptf_block = df_custom[df_custom['filter'] == block]
             for r in range(block_len,block_len + len(ptf_block.index)):
+                
                 launch = bbg_mgr(
                                           r,
                                           df_custom.iloc[r,0],
@@ -1028,17 +1097,16 @@ class worker():
                                           df_custom.iloc[r,15],
                                           df_custom.iloc[r,18],
                                       str(df_custom.iloc[r,19]),
-                                      str(df_custom.iloc[r,20]),
-                                      str(df_custom.iloc[r,17]) 
+                                      str(df_custom.iloc[r,20])
                                  )
-                #launch new ptf/view only when starting new ptf block or if previous iteration failed
-                if r - block_len == 0 or last_iter_failed == 'y':
-                    last_iter_failed = 'n'
-                    launch.setup_PORT_UI()
                 try:
-                    #run all rows in the ptf block
-                    launch.PROD_vs_QA(r)
-                #manage exceptions
+                    if r - block_len == 0 or last_iter_failed == 'y':
+                        last_iter_failed = 'n'
+                        launch.setup_PORT_UI() #relaunch UI only on first row of each block or if last_iter failed
+                    else:
+                        pass
+                    launch.PROD_vs_QA(r) #MAIN FUNCTION - run all rows in the block
+                    
                 except Exception as e:
                     if str(e) == 'Can only compare identically-labeled DataFrame objects':
                         launch.err_handler(r)   
@@ -1050,6 +1118,7 @@ class worker():
                     else:
                         launch.iteration_err_handler(r)
                         last_iter_failed = 'y'
+                        
                 #save result template after each iteration
                 workbook.save(final_file)
             #increase r variable to correctly retrieve/recap data by blocks
