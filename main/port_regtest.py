@@ -41,15 +41,15 @@ from openpyxl.styles import Alignment, Border, Side, Font, Color, PatternFill
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 #control speed (put a value between 0.8 - 1.2)
-t = 1
+t = 1.2
 
 #files download folder of the bloomberg terminal
-#download_dir = "C:\\blp\\data\\"
-download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
+download_dir = "C:\\blp\\data\\"
+#download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
 
 #set as 'traveler' if excel files don't close while running
-#username = "Marco"
-username = "traveler"
+username = "Marco"
+#username = "traveler"
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -112,7 +112,7 @@ class window_mgr():
 
     def set_foreground_k(self):   
         shell = win32com.client.Dispatch("WScript.Shell")
-        shell.SendKeys(' ')
+        shell.SendKeys('')
         win32gui.SetForegroundWindow(self._handle)
         time.sleep(t*1)
     
@@ -228,6 +228,7 @@ class bbg_mgr():
         time.sleep(t*0.5)
         pag.write("RRRR PORT " + self.m2 + " " + self.tab + " V " + self.view + " /QA")
         self.press_go()
+        time.sleep(6)
         
     def change_subtab(self):
         if self.tab == 'HP':
@@ -258,14 +259,6 @@ class bbg_mgr():
         self.press_go()
         time.sleep(t*2)
         
-    def change_subtab_prod(self):
-        win.open_bbg_1()
-        self.change_subtab()
-        
-    def change_subtab_qa(self):
-        win.open_bbg_2()
-        self.change_subtab()
-        time.sleep(2)
     
 #CHANGE_WIDGETS FUNCTIONS ARE ALL DEPRECATED
 
@@ -419,6 +412,8 @@ class bbg_mgr():
 #END OF DEPRECATION
     
     def setup_all_widgets(self, machine):
+        self.change_subtab()
+        time.sleep(t*2)
         dropdown_values_list = [
                                     self.bmk,
                                     self.bkdn,
@@ -581,7 +576,7 @@ class bbg_mgr():
                           str(sheet['C3'].value) + str(sheet['C4'].value) + str(sheet['C5'].value) +
                           str(sheet['C6'].value) + str(sheet['D2'].value) + str(sheet['D3'].value) +
                           str(sheet['D4'].value) + str(sheet['D5'].value) + str(sheet['D6'].value) +
-                          str(sheet['E2'].value)) == 'NoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNone' and y < 10 :
+                          str(sheet['E2'].value)) == 'NoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNoneNone' and y < 20 :
                     y = y + 1
                     self.closeExcel()
                     self.export(machine)
@@ -791,16 +786,12 @@ class bbg_mgr():
         perc_err = sum(tot_err)/(len(df_comparison.index) * len(df_comparison.columns))
         workbook['Results']['C' + str(r+5)].value = round(perc_err,2)
     
-    def setup_PORT_UI(self):
+
+    def PROD_vs_QA(self, r):
         self.select_ptf_prod()
         self.open_PORT_prod()
         self.select_ptf_qa()
         self.open_PORT_qa()
-        time.sleep(5)
-           
-    def PROD_vs_QA(self, r):
-        self.change_subtab_prod()
-        self.change_subtab_qa()
         self.setup_widgets_prod()
         self.setup_widgets_qa()
         self.export_prod()
@@ -1069,60 +1060,46 @@ class worker():
             df_dict = pd.DataFrame(df_dict.items()).T
             df_dict.columns = df_dict.iloc[0]
             df_custom = df_dict.drop(0)
-            
-        #a block is a subset of the control file containing all rows with same ptf/view/tab
-        df_custom['filter'] = df_custom['Portfolio'] + df_custom['View'] + df_custom['Tab'] 
-        blocks = df_custom['filter'].value_counts().index.to_list()
-        block_len = 0
-        last_iter_failed = 'n'
-        for block in blocks:
-            ptf_block = df_custom[df_custom['filter'] == block]
-            for r in range(block_len,block_len + len(ptf_block.index)):
-                
-                launch = bbg_mgr(
-                                          r,
-                                          df_custom.iloc[r,0],
-                                          df_custom.iloc[r,1],
-                                          df_custom.iloc[r,3],
-                                          df_custom.iloc[r,4],
-                                          df_custom.iloc[r,5],
-                                          df_custom.iloc[r,6],
-                                          df_custom.iloc[r,7],
-                                      str(df_custom.iloc[r,8]),
-                                          df_custom.iloc[r,10],
-                                          df_custom.iloc[r,11],
-                                          df_custom.iloc[r,12],
-                                          df_custom.iloc[r,13],
-                                      str(df_custom.iloc[r,14]),
-                                          df_custom.iloc[r,15],
-                                          df_custom.iloc[r,18],
-                                      str(df_custom.iloc[r,19]),
-                                      str(df_custom.iloc[r,20])
-                                 )
-                try:
-                    if r - block_len == 0 or last_iter_failed == 'y':
-                        last_iter_failed = 'n'
-                        launch.setup_PORT_UI() #relaunch UI only on first row of each block or if last_iter failed
-                    else:
-                        pass
-                    launch.PROD_vs_QA(r) #MAIN FUNCTION - run all rows in the block
-                    
-                except Exception as e:
-                    if str(e) == 'Can only compare identically-labeled DataFrame objects':
-                        launch.err_handler(r)   
-                    elif str(e).split(' ')[0] == 'PyAutoGUI':
-                        launch.err_handler_manual(r)
-                        break
-                    elif str(e) == 'Can only use .str accessor with string values!':
-                        pass
-                    else:
-                        launch.iteration_err_handler(r)
-                        last_iter_failed = 'y'
-                        
-                #save result template after each iteration
-                workbook.save(final_file)
-            #increase r variable to correctly retrieve/recap data by blocks
-            block_len = block_len + len(ptf_block) 
+
+        for r in range(0,len(df_custom.index)):
+
+            launch = bbg_mgr(
+                                      r,
+                                      df_custom.iloc[r,0],
+                                      df_custom.iloc[r,1],
+                                      df_custom.iloc[r,3],
+                                      df_custom.iloc[r,4],
+                                      df_custom.iloc[r,5],
+                                      df_custom.iloc[r,6],
+                                      df_custom.iloc[r,7],
+                                  str(df_custom.iloc[r,8]),
+                                      df_custom.iloc[r,10],
+                                      df_custom.iloc[r,11],
+                                      df_custom.iloc[r,12],
+                                      df_custom.iloc[r,13],
+                                  str(df_custom.iloc[r,14]),
+                                      df_custom.iloc[r,15],
+                                      df_custom.iloc[r,18],
+                                  str(df_custom.iloc[r,19]),
+                                  str(df_custom.iloc[r,20])
+                             )
+            try:
+                 launch.PROD_vs_QA(r) #MAIN FUNCTION - run all rows in the block
+            except Exception as e:
+                if str(e) == 'Can only compare identically-labeled DataFrame objects':
+                    launch.err_handler(r)
+                elif str(e).split(' ')[0] == 'PyAutoGUI':
+                    launch.err_handler_manual(r)
+                    break
+                elif str(e) == 'Can only use .str accessor with string values!':
+                    pass
+                else:
+                    launch.iteration_err_handler(r)
+
+
+            #save result template after each iteration
+            workbook.save(final_file)
+
         if UI.turnoff_button.value == True:
             workbook.save(final_file)
             os.system("shutdown /s /t 1")
