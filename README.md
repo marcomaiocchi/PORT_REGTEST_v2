@@ -35,14 +35,14 @@ Before you start the app you can quickly test that you installed everything corr
 
 
 ## How to
-Running the app is fairly easy. Open Bloomberg and in Options terminal set the Classic Layout with windows, not Tabs. The comaprison test will be run on the windows '1-BLOOMBERG' for PROD and '2-BLOOMBERG' for QA.
+Running the app is fairly easy. Open Bloomberg and in Options terminal set the Classic Layout with windows, not Tabs. The comparison test will be run on the windows '1-BLOOMBERG' for PROD and '2-BLOOMBERG' for QA.
 The inputs can come from two sources: the control_file or the app UI.
 If you plan to run multiple tests in a loop please set up the rows in the sheet CUSTOM of the control_file, save it and close it. Make sure that the 'Inputs' dropdown in the app is set to CUSTOM and press the red button START REGRESSION TEST in the jupyter app.
 
 Once the test start you cannot use your computer, please simply let it run without moving the mouse or pressing any keys.
 If you need to interrupt manually the test please move the mouse to one of the corner of the monitor, this will trigger a handled error and the software will stop, keeping the results of the tests that were already run.
 
-The test follows this logic: multiple tests/input rows are gathered in 'blocks' with same Portfolio ID, same Tab ('TE', 'VR', etc..) and same 'View'. This allows for a faster testing since the software won't need to relaunch the whole PORT UI but it will just load it once and then switch between sub-tabs. For example, if you use the TE tab and select different sub-tabs ('Factors', 'Main View', etc..), these will be run without relaunching PORT.
+The test follows this logic: first a portfolio is selected by inserting its ID and pressing F12, then PORT is launched together with the preferred view and the tab. After that the sub-tab is selected and all widgets will be modified based on the preferences. The last step is the export of the report, either unformatted or formatted, and the comparison between PROD and QA.
 
 At the end of the process, an excel template with a recap will be automatically generated.
 
