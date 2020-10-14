@@ -2,24 +2,24 @@
 
 Author: MMAIOCCHI1
 
-A regression testing software to test the UI and the quality of data delivered by PORT. It's written 100% in python with a small UI in jupyter notebook. With the help of PyAutoGUI and other useful libraries, this software allows you to manipulate the Bloomberg terminal and generate hundreds of different combinations of PORT reports, comparing the results from PROD and QA machines. It's quite flexible and it might be further developed to easily test other Bloomberg functions.
+A regression testing software to test the UI and the quality of data delivered by PORT. It's written 100% in python with a small UI in jupyter notebook. With the help of PyAutoGUI and other useful libraries, this software allows you to manipulate the Bloomberg terminal and generate hundreds of different combinations of PORT reports, comparing the results between PROD and QA/BETA machines or by adding BREGS. It's quite flexible and it might be further developed to easily test other Bloomberg functions.
 
 ## Before launching:
 Please check in which folder your PORT reports are usually being downloaded/stored. Usually the folder is 'C\\blp\\data\\'.
 Once you know the folder path go to main -> port_regtest.py and after the import statements set the variable 'download_dir' equal to your PORT report download path. Save the .py file.
 
-You might face problems if your pc or Bloomberg terminal are slow. In case the regression test keeps failing, as a first fix you can reduce the test speed in main -> port_regtest.py and after the import statements increase the value of variable 't'.  
+You might face problems if your pc or Bloomberg terminal are slow. In case the regression test keeps failing, as a first fix you can reduce the test speed with the slider in the app UI.
 
 ## Brief description of the files:
 - main -> port_regtest.py contains all the python code to run the app
 - regtest_app.ipynb is the app from where you can launch the PORT UI regression testing, see Requirements to set it up correctly
 - control_file.xlsx is where you can setup a custom series of tests to do in a loop. Another option is launching a single test using the widgets in the app. Some series of test are already setup: 'NXQC', 'RISK', 'HIPPO'
 - example.ipynb is a super small notebook to test that you have install everything correctly
-- the very first day you run the app, a new folder 'results' will be created in the directory, together with a sub-folder for the day of the today. Everyday a new sub-folder will be generated. Each daily sub-folder contains 4 sub-folders:
+- the very first day you run the app, a new folder 'results' will be created in the directory, together with a sub-folder for today. Everyday a new sub-folder will be generated. Each daily sub-folder contains 4 sub-folders:
    - final_results: contains the final report of the tests
    - failures: contains screenshots of the PORT windows when the app fails to generate reports
-   - prod_reports: all reports generated from PROD
-   - qa_reports: all reports generated from QA
+   - prod_reports: all reports generated from terminal window1
+   - qa_reports: all reports generated from terminal window2
 
 ## Requirements
 - Anaconda Distribution -> https://docs.anaconda.com/anaconda/install/
@@ -36,13 +36,13 @@ Before you start the app you can quickly test that you installed everything corr
 
 ## How to
 Running the app is fairly easy. Open Bloomberg and in Options terminal set the Classic Layout with windows, not Tabs. The comparison test will be run on the windows '1-BLOOMBERG' for PROD and '2-BLOOMBERG' for QA.
-The inputs can come from two sources: the control_file or the app UI.
-If you plan to run multiple tests in a loop please set up the rows in the sheet CUSTOM of the control_file, save it and close it. Make sure that the 'Inputs' dropdown in the app is set to CUSTOM and press the red button START REGRESSION TEST in the jupyter app.
+The inputs can come from two sources: the control_file or the app UI. Select the tab accordigly.
+If you plan to run multiple tests in a loop please set up the rows in the sheet CUSTOM of the control_file, save it and close it and then press the red button START REGRESSION TEST in the app.
 
-Once the test start you cannot use your computer, please simply let it run without moving the mouse or pressing any keys.
+Once the test start you cannot use your computer unless is running in a VM, please simply let it run without moving the mouse or pressing any keys.
 If you need to interrupt manually the test please move the mouse to one of the corner of the monitor, this will trigger a handled error and the software will stop, keeping the results of the tests that were already run.
 
-The test follows this logic: first a portfolio is selected by inserting its ID and pressing F12, then PORT is launched together with the preferred view and the tab. After that the sub-tab is selected and all widgets will be modified based on the preferences. The last step is the export of the report, either unformatted or formatted, and the comparison between PROD and QA.
+The test follows this logic: first a portfolio is selected by inserting its ID and pressing F12, then PORT is launched together with the preferred view and the tab. After that the sub-tab is selected and all widgets will be modified based on the preferences. BREGS can be added too. The last step is the export of the report, either unformatted or formatted, and the comparison between PROD and QA or with and without BREGS.
 
 At the end of the process, an excel template with a recap will be automatically generated.
 
