@@ -2,7 +2,7 @@
 
 Author: MMAIOCCHI1
 
-A regression testing software to test the UI and the quality of data delivered by PORT. It's written 100% in python with a small UI in jupyter notebook. With the help of PyAutoGUI and other useful libraries, this software allows you to manipulate the Bloomberg terminal and generate hundreds of different combinations of PORT reports, comparing the results between PROD and QA/BETA machines or by adding BREGS. It's quite flexible and it might be further developed to easily test other Bloomberg functions.
+A regression testing software to test the UI and the quality of data delivered by PORT. It's written 100% in python with a small UI in jupyter notebook. With the help of PyAutoGUI and other useful libraries, this software allows you to manipulate the Bloomberg terminal and generate hundreds of different combinations of PORT reports, comparing the results between PROD and QA/BETA machines or between running with or without BREGS. It's quite flexible and it might be further developed to easily test other Bloomberg functions.
 
 ## Before launching:
 Please check in which folder your PORT reports are usually being downloaded/stored. Usually the folder is 'C\\blp\\data\\'.
