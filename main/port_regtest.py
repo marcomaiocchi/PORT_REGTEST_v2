@@ -39,17 +39,12 @@ from openpyxl.styles import Alignment, Border, Side, Font, Color, PatternFill
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-#control speed (put a value between 0.8 - 1.2)
-t = 1.2
+#set to 0 to see error outputs in the app
+debugMode = 1
 
 #files download folder of the bloomberg terminal
 download_dir = "C:\\blp\\data\\"
 #download_dir = "C:\\Users\\traveler\\AppData\\Local\\Temp\\Bloomberg\\data\\"
-
-#set as 'traveler' if excel files don't close while running
-username = "Marco"
-#username = "traveler"
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -84,7 +79,7 @@ def create_template():
     recap_sheet.sheet_view.showGridLines = False
     recap_sheet['B2'].value = 'TESTS RESULTS'
     recap_sheet['B4'].value = 'Test Name'
-    recap_sheet['C4'].value = '% Errors'
+    recap_sheet['C4'].value = 'Errors'
     recap_sheet.column_dimensions['B'].width = 40
     recap_sheet.column_dimensions['C'].width = 23
     for row in range(4,1000):
@@ -158,7 +153,7 @@ class bbg_mgr():
     
     def __init__(self,r=None,check=None,tmp=None,ptf=None,bmk=None,tab=None,
                  subt=None,view=None,day=None,ccy=None,bkdn=None,model=None,
-                 unit=None,clvl=None,hz=None,scen=None,m1=None,m2=None):
+                 unit=None,clvl=None,hz=None,breg=None,scen=None,m1=None,m2=None):
         
         self.r = r
         self.check = check
@@ -175,23 +170,72 @@ class bbg_mgr():
         self.unit = unit
         self.clvl = clvl
         self.hz = hz
+        self.breg = breg
         self.scen = scen
         self.m1 = m1
         self.m2 = m2
+        if day == 'None': self.day = 'Default'
     
     def press_go(self):
         pag.press('enter')
         pag.press('enter')
-        time.sleep(t*0.75)
+        time.sleep(t*0.5)
     
-    def test(self):
+    def test_terminal(self):
         win.open_bbg_1()
         pag.write('THIS IS JUST A TEST. ')
         time.sleep(3)
-        pag.write('CANCELLING IN 5 SECONDS...')
+        pag.write('CANCELING IN 5 SECONDS...')
         time.sleep(5)
         pag.press('esc')
         pag.press('esc')
+        
+    def test_excel(self):
+        os.system('start excel.exe /e/')
+        time.sleep(10)
+        pag.hotkey('alt','fn', 'f4')
+        time.sleep(2)
+        
+    def choose_BREG(self):
+        if self.breg == 'wave1':
+            breg = 'bbit_infield_use_dtl_for_equity_fields_wave_1'
+        elif self.breg == 'wave2':
+            breg = 'bbit_infield_use_dtl_for_equity_fields_wave_2'
+        elif self.breg == 'wave3':
+            breg = 'bbit_infield_use_dtl_for_equity_fields_wave_3'
+        pag.write(breg)
+            
+    def setup_BREG(self):
+        if self.breg == 'None':
+            pass
+        else:
+            win.open_bbg_1()
+            time.sleep(t*1)
+            pag.write('9994')
+            time.sleep(t*1)
+            self.press_go()
+            pag.write('5')
+            time.sleep(t*1)
+            self.press_go()
+            time.sleep(t*1)
+            pag.press('tab')
+            time.sleep(t*1)
+            self.choose_BREG()
+            time.sleep(t*1)
+            pag.press('tab')
+            time.sleep(t*1)
+            pag.write('TRUE')
+            time.sleep(t*1)
+            self.press_go()
+            pag.press('1')
+            self.press_go()
+            time.sleep(t*1)
+            pag.press('2')
+            self.press_go()
+            time.sleep(t*1)
+            pag.press('1')
+            self.press_go()
+            time.sleep(t*1)
         
     def bbg_fnc(self, fnc):
         win.open_bbg_1()
@@ -212,6 +256,10 @@ class bbg_mgr():
     def select_ptf_prod(self):
         win.open_bbg_1()
         self.select_ptf()
+        
+    def select_ptf_dtl(self):
+        win.open_bbg_1()
+        self.select_ptf()
     
     def select_ptf_qa(self):
         win.open_bbg_2()
@@ -222,13 +270,20 @@ class bbg_mgr():
         time.sleep(t*0.5)
         pag.write("PORT " + self.tab + " V " + self.view + " /QA")
         self.press_go()
+        
+    def open_PORT_dtl(self):
+        win.open_bbg_1()
+        time.sleep(t*0.5)
+        pag.write("RRRR PORT " + self.m2 + " " + self.tab + " V " + self.view + " /QA")
+        self.press_go()
+        time.sleep(t*6)
     
     def open_PORT_qa(self):
         win.open_bbg_2()
         time.sleep(t*0.5)
         pag.write("RRRR PORT " + self.m2 + " " + self.tab + " V " + self.view + " /QA")
         self.press_go()
-        time.sleep(6)
+        time.sleep(t*6)
         
     def change_subtab(self):
         if self.tab == 'HP':
@@ -259,160 +314,7 @@ class bbg_mgr():
         self.press_go()
         time.sleep(t*2)
         
-    
-#CHANGE_WIDGETS FUNCTIONS ARE ALL DEPRECATED
-
-    def change_bmk(self, n):
-        if self.bmk == "Default":
-            pass
-        else:
-            self.iter_tab(n)
-            time.sleep(t*1)
-            pag.write(self.bmk)
-            time.sleep(t*1)
-            self.press_go()
-                 
-    def change_bkdn(self, n):
-        if self.bkdn == "Default":
-            pass
-        else:
-            self.iter_tab(n)
-            time.sleep(t*1)
-            pag.write(self.bkdn)
-            time.sleep(t*1)
-            self.press_go()
-                    
-    def change_ccy(self, n):
-        if self.ccy == "Default":
-            pass
-        else:
-            self.iter_tab(n)
-            time.sleep(t*1)
-            pag.write(self.ccy)
-            time.sleep(t*1)
-            self.press_go()
-            
-    def change_day(self, n):
-        if self.day != 'PREV_CLOSE':
-            if self.tab == 'PA':
-                mm = self.day.split('/')[0]
-                dd = self.day.split('/')[1]
-                yy = self.day.split('/')[2]
-            else:
-                mm = self.day[0:2]
-                dd = self.day[3:5]
-                yy = self.day[6:8]
-            self.iter_tab(n)
-            pag.write(mm)
-            time.sleep(t*1)
-            pag.write(dd)
-            time.sleep(t*1)
-            pag.write(yy)
-            time.sleep(t*1)
-            self.press_go()
-        else:
-            pass
-          
-    def change_model(self, n):
-        if self.model == 'Default':
-            pass
-        else:
-            if self.tab in ['TE','VR','SA']:
-                self.iter_tab(n)
-                time.sleep(t*1)
-                pag.write(self.model)
-                time.sleep(t*1)
-                self.press_go()
-            else:
-                pass
-                   
-    def change_unit(self, n):
-        if self.unit == 'Default':
-            pass
-        else:
-            if self.tab in ['TE','VR']:
-                self.iter_tab(n)
-                time.sleep(t*1)
-                pag.write(self.unit)
-                time.sleep(t*1)
-                self.press_go()
-            else:
-                pass
-                    
-    def change_clvl(self, n):
-        if self.clvl == 'Default':
-            pass
-        else:
-            if self.tab == 'VR':
-                self.iter_tab(n)
-                time.sleep(t*1)
-                pag.write(self.clvl)
-                time.sleep(t*1)
-                self.press_go()
-            else:
-                pass
-                     
-    def change_hz(self, n):
-        if self.hz == 'Default':
-            pass
-        else:
-            if self.tab in ['TE','VR']:
-                if self.tab == 'VR':
-                    n = n + 1
-                self.iter_tab(n)
-                time.sleep(t*1)
-                pag.write(self.hz)
-                time.sleep(t*1)
-                self.press_go()
-            else:
-                pass
-                    
-    def change_attrb(self, n):
-        if self.model == 'Default':
-            pass
-        else:
-            if self.tab == 'PA':
-                self.iter_tab(n)
-                time.sleep(t*1)
-                pag.write(self.model)
-                time.sleep(t*1)
-                self.press_go()
-                #fix for bug in attribution tab
-                time.sleep(5)
-                yesterday = datetime.now() - timedelta(days=30)
-                day = yesterday.strftime("%D")
-                mm = day.split('/')[0]
-                dd = day.split('/')[1]
-                yy = day.split('/')[2]
-                self.iter_tab(6)
-                pag.write(mm)
-                time.sleep(t*1)
-                pag.write(dd)
-                time.sleep(t*1)
-                pag.write(yy)
-                time.sleep(t*1)
-                self.press_go()
-            else:
-                pass
-               
-                
-    def change_scen(self, n):
-        if self.scen == 'Default':
-            pass
-        else:
-            if self.tab == 'SA':
-                self.iter_tab(n)
-                time.sleep(t*1)
-                pag.write(self.scen)
-                time.sleep(t*1)
-                self.press_go()
-            else:
-                pass
-
-#END OF DEPRECATION
-    
     def setup_all_widgets(self, machine):
-        self.change_subtab()
         time.sleep(t*2)
         dropdown_values_list = [
                                     self.bmk,
@@ -462,9 +364,9 @@ class bbg_mgr():
                     if final_values_list[i] != 'Default':
                         #handle day typing
                         if i == 3:
-                            mm = self.day[0:2]
-                            dd = self.day[3:5]
-                            yy = self.day[6:8]
+                            mm = str(self.day[5:7])
+                            dd = str(self.day[8:10])
+                            yy = str(self.day[2:4])
                             pag.write(mm)
                             time.sleep(0.5)
                             pag.write(dd)
@@ -485,14 +387,35 @@ class bbg_mgr():
 
     def setup_widgets_prod(self):
         win.open_bbg_1()
+        self.change_subtab()
+        win.open_bbg_1()
         self.setup_all_widgets('PROD')
         self.press_go()
-        time.sleep(2)
+        time.sleep(t*2)
         
     def setup_widgets_qa(self):
         win.open_bbg_2()
+        self.change_subtab()
+        win.open_bbg_2()
         self.setup_all_widgets('QA')
         self.press_go()
+        time.sleep(t*2)
+        
+    def setup_widgets_custom(self, formulas):
+        if formulas == 'withBREG':
+            win.open_bbg_1()
+            self.change_subtab()
+            win.open_bbg_1()
+            self.setup_all_widgets('QA')
+            self.press_go()
+            time.sleep(t*2)
+        else:
+            win.open_bbg_2()
+            self.change_subtab()
+            win.open_bbg_2()
+            self.setup_all_widgets('QA')
+            self.press_go()
+            time.sleep(t*2)
     
     def export(self, machine):
         if machine == 'PROD':
@@ -521,33 +444,21 @@ class bbg_mgr():
         if self.tmp == 'Current Tab (Unformatted xls)': 
             win.open_excel_file()
             time.sleep(1)
-            if username == "traveler":
-                pag.hotkey('ctrl','fn', 'f4')
-            else:    
-                pag.hotkey('ctrl', 'f4')
+            pag.hotkey('ctrl','fn', 'f4')
             try:
                 win.open_excel_file()
                 time.sleep(1)
-                if username == "traveler":
-                    pag.hotkey('ctrl','fn', 'f4')
-                else:    
-                    pag.hotkey('ctrl', 'f4')
+                pag.hotkey('ctrl','fn', 'f4')
             except:
                 pass
         else:
             win.open_excel_formatted()
             time.sleep(1)
-            if username == "traveler":
-                pag.hotkey('alt','fn', 'f4')
-            else:    
-                pag.hotkey('alt', 'f4')
+            pag.hotkey('alt','fn', 'f4')
             try:
-                win.open_excel_file()
+                win.open_excel_formatted()
                 time.sleep(1)
-                if username == "traveler":
-                    pag.hotkey('alt','fn', 'f4')
-                else:    
-                    pag.hotkey('alt', 'f4')
+                pag.hotkey('alt','fn', 'f4')   
             except:
                 pass
         time.sleep(2)
@@ -556,7 +467,7 @@ class bbg_mgr():
         while True:
             try:
                 x = 0
-                while x < 20:
+                while x < 10:
                     try:
                         x = x + 1
                         time.sleep(t*2)
@@ -685,13 +596,16 @@ class bbg_mgr():
         self.export('QA')
         self.export_loop('QA')
         
-    def save_XLS_prod(self, _id):
+    def save_XLS(self, _id, window):
         if self.tmp == 'Current Tab (Unformatted xls)': 
             time.sleep(t*1)
             file = win32gui.GetWindowText(win32gui.GetForegroundWindow()).split()[0]
             os.chdir(download_dir)
             wb = openpyxl.load_workbook(file + '.xlsx')
-            filename = str(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx')
+            if window == 1:
+                filename = str(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx')
+            else:
+                filename = str(path_report2 + '\\2_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx')
             wb.save(filename = filename)
         else:
             time.sleep(t*5)
@@ -699,61 +613,34 @@ class bbg_mgr():
             fname = download_dir + file + ".xls"
             excel = win32com.client.gencache.EnsureDispatch('Excel.Application')
             wb = excel.Workbooks.Open(fname)
-            wb.SaveAs(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx',
-                      FileFormat = 51)
-        
-    def save_XLS_qa(self, _id):
-        if self.tmp == 'Current Tab (Unformatted xls)': 
-            time.sleep(t*1)
-            file = win32gui.GetWindowText(win32gui.GetForegroundWindow()).split()[0]
-            os.chdir(download_dir)
-            wb = openpyxl.load_workbook(file + '.xlsx')
-            filename = str(path_report2 + '\\2_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx')
-            wb.save(filename = filename)
-        else:
-            time.sleep(t*5)
-            file = win32gui.GetWindowText(win32gui.GetForegroundWindow())[0:8]
-            fname = download_dir + file + ".xls"
-            excel = win32com.client.gencache.EnsureDispatch('Excel.Application')
-            wb = excel.Workbooks.Open(fname)
-            wb.SaveAs(path_report2 + '\\2_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx',
-                      FileFormat = 51)
-                   
-    def round_float(self, s):
-        m = re.match("(\d+\.\d+)",s.__str__())
-        try:
-            r = abs(round(float(m.groups(0)[0]),2))
-        except:
-            r = s
-        return r
-    
-    def round_df(self, df):
-        for col in range(0,len(df.columns)):
-            df[col] = df[col].apply(analyze.round_float)
+            if window == 1:
+                wb.SaveAs(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx',FileFormat = 51)
+            else:
+                wb.SaveAs(path_report2 + '\\2_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(_id) +'.xlsx',FileFormat = 51)
                  
     def df_comparison(self, r):
         if self.tmp == 'Current Tab (Unformatted xls)':
             df1 = pd.read_excel(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(r) + '.xlsx',
-                                header = None).fillna(0).iloc[:1000]
+                               header = None).fillna(0)
             df2 = pd.read_excel(path_report2 + '\\2_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(r) + '.xlsx',
-                                header = None).fillna(0).iloc[:1000]
+                               header = None).fillna(0)
         else:
             df1 = pd.read_excel(path_report1 + '\\1_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(r) + '.xlsx',
                                 header = None).fillna(0)[:-1]
             df2 = pd.read_excel(path_report2 + '\\2_' + self.tab + '_' + self.subt + '_' + self.ptf + '_' + str(r) + '.xlsx',
                                 header = None).fillna(0)
-            df2 = df2.iloc[:,0:len(df2.columns)+(df1.shape[1]-df2.shape[1])] #fix to avoid styling issues in QA  
-        for col in range(0,len(df1.columns)):
-            df1[col] = df1[col].apply(self.round_float)
-        for col in range(0,len(df2.columns)):
-            df2[col] = df2[col].apply(self.round_float)
+            df2 = df2.iloc[:,0:len(df2.columns)+(df1.shape[1]-df2.shape[1])] #fix to avoid styling issues in QA
+        #round to 6 decimals if data point in df is float
+        df1 = df1.applymap(lambda x: round(x,6) if isinstance(x,float) else x)
+        df2 = df2.applymap(lambda x: round(x,6) if isinstance(x,float) else x)
+        #make comparison df
         df_comparison = (df1 == df2)
         for c in range(0,len(df_comparison.columns)):
             for rw in range(0,len(df_comparison.index)):
                 if df_comparison.iloc[rw,c] == True:
                     df_comparison.iloc[rw,c] = df1.iloc[rw,c]
                 else:
-                    df_comparison.iloc[rw,c] = str(df1.iloc[rw,c]) + " <> " + str(df2.iloc[rw,c])
+                    df_comparison.iloc[rw,c] = str(round(df1.iloc[rw,c],6)) + " <> " + str(round(df2.iloc[rw,c],6))
         return df_comparison
            
     def dump_results_to_excel(self, r):
@@ -783,9 +670,48 @@ class bbg_mgr():
         for c in range(0,len(df_comparison.columns)):
             errbycol = df_comparison[c].str.count("<>").sum()
             tot_err.append(errbycol)
-        perc_err = sum(tot_err)/(len(df_comparison.index) * len(df_comparison.columns))
-        workbook['Results']['C' + str(r+5)].value = round(perc_err,2)
-    
+        tot_err = sum(tot_err)
+        workbook['Results']['C' + str(r+5)].value = round(tot_err,2)
+        
+    def summarize_byEqtFields(self, r):
+        df_comparison = self.df_comparison(r)
+        fields_list = pd.DataFrame(df_comparison.iloc[0].to_list(), columns = ['Equity Fields'])
+        tot_err = []
+        for c in range(0,len(df_comparison.columns)):
+            errbycol = df_comparison[c].str.count("<>").sum()
+            tot_err.append(errbycol)
+        fields_list['Errors'] = tot_err
+        #dump summary byEqtField to new sheet
+        sheet_new = workbook.create_sheet(str(r) + '_' + self.ptf)
+        sheet_new.sheet_view.showGridLines = False
+        sheet_new.column_dimensions['B'].width = 20
+        rows = dataframe_to_rows(fields_list)
+        for r_idx, row in enumerate(rows, 1):
+            for c_idx, value in enumerate(row, 1):
+                 sheet_new.cell(row=r_idx, column=c_idx, value=value)
+        #recap results in summary page (only rows with errors)
+        workbook['Results']['B' + str(r+5)].value = str(r) + '_' + self.check + '_' + self.ptf + '_' + self.tab + '_' + self.subt
+        tot_err = sum(tot_err)
+        workbook['Results']['C' + str(r+5)].value = round(tot_err,2)
+        #add filtered comparison next to recap
+        df_filtered = df_comparison[:1]
+        for row in range(0, len(df_comparison.index)):
+            some_list = df_comparison.iloc[row].to_list()
+            some_list = list(map(str, some_list))
+            if '<>' in '\t'.join(some_list):
+                df_filtered = df_filtered.append(df_comparison[row:row+1])
+        rows = dataframe_to_rows(df_filtered)
+        for r_idx, row in enumerate(rows, 1):
+            for c_idx, value in enumerate(row, 5):
+                 sheet_new.cell(row=r_idx, column=c_idx, value=value)
+        #add formatting to new comparison sheet
+        red_text = Font(color="9C0006")
+        red_fill = PatternFill(bgColor="FFC7CE")
+        dxf = DifferentialStyle(font=red_text, fill=red_fill)
+        rule = Rule(type="containsText", operator="containsText", text="<>", dxf=dxf)
+        rule.formula = ['NOT(ISERROR(SEARCH("<>",A1)))']
+        sheet_new.conditional_formatting.add('A1:ZZ5000', rule)
+        
 
     def PROD_vs_QA(self, r):
         self.select_ptf_prod()
@@ -795,14 +721,43 @@ class bbg_mgr():
         self.setup_widgets_prod()
         self.setup_widgets_qa()
         self.export_prod()
-        self.save_XLS_prod(r)
+        self.save_XLS(r,1)
         self.closeExcel()
         self.export_qa()
-        self.save_XLS_qa(r)
+        self.save_XLS(r,2)
         self.closeExcel()
         self.df_comparison(r)
         self.dump_results_to_excel(r)
-           
+  
+    def BREG_vs_noBREG(self, r):
+        if self.breg != 'Default':
+            self.select_ptf_dtl()
+            self.open_PORT_dtl()
+            self.setup_BREG()
+            self.select_ptf_qa()
+            self.open_PORT_qa()
+        self.setup_widgets_custom('withBREG')
+        self.setup_widgets_custom('noBREG')
+        self.export_prod()
+        self.save_XLS(r,1)
+        self.closeExcel()
+        self.export_qa()
+        self.save_XLS(r,2)
+        self.closeExcel()
+        self.summarize_byEqtFields(r)
+    
+    #add here a new customized test
+    def TEST(self,r):
+        if self.check == 'PROD_vs_QA':
+            self.PROD_vs_QA(r)
+        elif self.check == 'BREG_vs_noBREG':
+            self.BREG_vs_noBREG(r)
+            
+            
+    ''''''''''''''''''''    
+    '''Error handlers'''
+    
+    ''''''''''''''''''''  
     def err_handler(self, r):
         sheet_err = workbook.create_sheet(str(r) + '_' + self.ptf)
         sheet_err.sheet_view.showGridLines = False
@@ -847,22 +802,6 @@ class bbg_mgr():
         workbook['Results']['B' + str(r+5)].value = str(r) + '_' + self.check + '_' + self.ptf + '_' + self.tab + '_' + self.subt
         workbook['Results']['C' + str(r+5)].value = 'Something went wrong'
 
-#DEPRECATED TOGETHER WITH ALL ITS FUNCTIONS
-
-    def modify_PORT_UI(self): 
-        self.change_subtab()
-        self.change_bmk(2)
-        self.change_bkdn(3)
-        self.change_ccy(4)
-        self.change_day(5)
-        self.change_model(8)
-        self.change_unit(9)
-        self.change_scen(9)
-        self.change_clvl(10)
-        self.change_hz(10)
-        self.change_attrb(12)
-        
-#END OF DEPRECATION
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
         
@@ -870,16 +809,15 @@ class UI:
            
     tab_list = ['CH','HD','HP','PA','TE','VR','SA']
     ptf_list = ['H160819-6','H160819-12','H160819-52','U4153597-165','...']
-    view_list = ['NX_EQT_RT','NX_BND_RT','RSK_EQT_RT','RSK_BND_RT','NX_EQUITY','NX_FIXINC','NX_BALANCED']
+    view_list = ['NX_EQUITY','NX_FIXINC','NX_BALANCED']
     subtab_list = ['MainView',' ','--TE tabs--','Summary', 'Factors', 'RiskBets', 'Trends', 'Exposure',
                   ' ','--HP tabs--','TotalReturn','PeriodAnalysis','SeasonalAnalysis','StatisticalSummary']
-    test_type = ['CUSTOM','NXQC','RISK','HIPPO',' ',
-                  'Single custom run']
+    test_type = ['PROD_vs_QA','BREG_vs_noBREG']
     qa_machine = ['2973','2974','2977']
     bmk_list = ['Default', 'None', 'MXWO', 'INDU']
     bkdn_list = ['Default', 'None', 'Market Cap Ranges', 'Security Type']
     ccy_list = ['Default', 'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'HKD']
-    day_list = ['PREV_CLOSE','12/31/19','01/16/20','01/31/20','...']
+    day_list = ['Default','12/31/19','01/16/20','01/31/20','...']
     model_list = ['Default', ' ','----Risk Models----', 'Asian', 'Australian', 'Canadian',
                   'Chinese', 'Emerging','European', 'Global', 'Japanese', 'Latin America',
                   'US', 'Fixed Income','Bloomberg Risk Model (Global)', 'Bloomberg Risk Model (Regional)',
@@ -889,10 +827,12 @@ class UI:
     hz_list = ['Default', '1 D', '1 W', '2 W', '1 M', '1 Q','1 Y']
     tmp_list = ['Current Tab (Unformatted xls)', 'Current Tab (xls)']
     scen_list = ['Default','All Scenarios', 'Equity Markets', 'Greece', 'Libya', 'Russian', 'Japan','Lehman']
+    breg_list = ['None','wave1','wave2','wave3']
 
+    
     tests_type = widgets.Dropdown(
         options=test_type,
-        description='Input : ',
+        description='Test : ',
         disabled=False)
 
     tabs_list = widgets.Dropdown(
@@ -938,12 +878,10 @@ class UI:
         disabled=False,
         value = 'Default')
 
-    days_list = widgets.Dropdown(
-        options=day_list,
+    days_list = widgets.DatePicker(
         description='Day : ',
-        disabled=False,
-        value = 'PREV_CLOSE')
-
+        disabled=False)
+    
     models_list = widgets.Dropdown(
         options=model_list,
         description='Model : ',
@@ -977,6 +915,11 @@ class UI:
         options=scen_list,
         description='Scenario : ',
         disabled=False)
+    
+    bregs_list = widgets.Dropdown(
+        options=breg_list,
+        description='Bregs : ',
+        disabled=False)
 
     start_button = widgets.Button(
         description='START REGRESSION TEST 🛠',
@@ -994,29 +937,36 @@ class UI:
     
     hidden_button_small = widgets.Button(
         description='hidden',
-        layout=widgets.Layout(width='8%'))
+        layout=widgets.Layout(width='20%'))
     hidden_button_small.layout.visibility = 'hidden'
     
     hidden_button_large = widgets.Button(
         description='hidden',
         layout=widgets.Layout(width='50%'))
     hidden_button_large.layout.visibility = 'hidden'
-    
-
     hidden_box = widgets.HBox([hidden_button_large])
-    box0 = widgets.HBox([tests_type, hidden_button_small, ctrlfile_button, hidden_button_small, turnoff_button])
+    
+    #widgets shown in tab 1
+    ctrlfileTab = widgets.HBox([hidden_button_small, ctrlfile_button, hidden_button_small, turnoff_button])
+    
+    #widgets shown in tab 2
     box1 = widgets.HBox([ptfs_list, tabs_list, views_list])
     box2 = widgets.HBox([subtabs_list, bmks_list, bkdns_list])
     box3 = widgets.HBox([ccys_list, days_list, units_list])
     box4 = widgets.HBox([models_list, clvls_list, hzs_list ])
     box5 = widgets.HBox([scens_list, qa_machines, tmps_list])
+    box6 = widgets.HBox([tests_type, bregs_list])
+    widgetsTab = widgets.VBox([box6,hidden_box,box1,box2,box3,box4,box5])
+   
+    #start button
     box_start = widgets.HBox([hidden_button_large,start_button,hidden_button_large])
+    
+    
     
      
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     
 class worker():
-    
 
     def open_ctrl_file(self):
         os.chdir(path)
@@ -1028,13 +978,12 @@ class worker():
         create_folders()
         create_template()
         final_file = path_results + '\\final_report_' + str(datetime.now().strftime("%H%M")) + '.xlsx'
-        #take input data (df_custom) either from the control_file or from the app UI
-        if UI.tests_type.value in ['CUSTOM','NXQC','RISK','HIPPO']:
+        if inputs == 'CTRL FILE': #inputs is a global variable that changes by switching tab in the app UI
             xls = pd.ExcelFile(path + "\\Control_file.xlsx")
-            df_custom = pd.read_excel(xls, UI.tests_type.value)
+            df_custom = pd.read_excel(xls, 'CUSTOM')
         else:
             df_dict = {
-                              "Test": '',
+                              "Test": UI.tests_type.value,
                               "Temp": UI.tmps_list.value,
                               "Name": '',
                               "Portfolio": UI.ptfs_list.value,
@@ -1051,7 +1000,7 @@ class worker():
                               "Clvl": UI.clvls_list.value,
                               "Hz": UI.hzs_list.value,
                               "Set": '',
-                              "Show": '',
+                              "Breg": UI.bregs_list.value,
                               "Scen": UI.scens_list.value,
                               "Mach1": '',
                               "Mach2": UI.qa_machines.value
@@ -1060,7 +1009,8 @@ class worker():
             df_dict = pd.DataFrame(df_dict.items()).T
             df_dict.columns = df_dict.iloc[0]
             df_custom = df_dict.drop(0)
-
+            
+        #run TEST for each row in the inputs dataframe
         for r in range(0,len(df_custom.index)):
 
             launch = bbg_mgr(
@@ -1079,22 +1029,27 @@ class worker():
                                       df_custom.iloc[r,13],
                                   str(df_custom.iloc[r,14]),
                                       df_custom.iloc[r,15],
+                                      df_custom.iloc[r,17],
                                       df_custom.iloc[r,18],
                                   str(df_custom.iloc[r,19]),
                                   str(df_custom.iloc[r,20])
                              )
-            try:
-                 launch.PROD_vs_QA(r) #MAIN FUNCTION - run all rows in the block
-            except Exception as e:
-                if str(e) == 'Can only compare identically-labeled DataFrame objects':
-                    launch.err_handler(r)
-                elif str(e).split(' ')[0] == 'PyAutoGUI':
-                    launch.err_handler_manual(r)
-                    break
-                elif str(e) == 'Can only use .str accessor with string values!':
-                    pass
-                else:
-                    launch.iteration_err_handler(r)
+            
+            if debugMode == 0:
+                launch.TEST(r)
+            else:
+                try:
+                     launch.TEST(r) #MAIN FUNCTION
+                except Exception as e:
+                    if str(e) == 'Can only compare identically-labeled DataFrame objects':
+                        launch.err_handler(r)
+                    elif str(e).split(' ')[0] == 'PyAutoGUI':
+                        launch.err_handler_manual(r)
+                        break
+                    elif str(e) == 'Can only use .str accessor with string values!':
+                        pass
+                    else:
+                        launch.iteration_err_handler(r)
 
 
             #save result template after each iteration
@@ -1111,21 +1066,63 @@ class worker():
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     
 class app():
+
     def run():
-        UI.ctrlfile_button.on_click(worker.open_ctrl_file)
-        UI.start_button.on_click(worker.launch_regtest)
+
+        #Switch tab to select different input types (ctrl file / widgets)
+        tabs = widgets.Tab()
+        tabs.children = [UI.ctrlfileTab,UI.widgetsTab]
+        tabs.set_title(0, 'CTRL FILE')
+        tabs.set_title(1, 'WIDGETS')
+
+        def switch_inputs(*args):
+            global inputs
+            if tabs.selected_index == 0:
+                inputs = 'CTRL FILE'
+            else:
+                inputs = 'WIDGETS'
+        tabs.observe(switch_inputs)
+        switch_inputs()
+        
+        #Control regtest speed using a slider
+        speed_slider = widgets.FloatSlider(
+                        value=1,
+                        min=0.8,
+                        max=1.5,
+                        step=0.1,
+                        description='Speed:',
+                        disabled=False,
+                        continuous_update=False,
+                        orientation='horizontal',
+                        readout=True,
+                        readout_format='.1f',
+                        )
+        
+        def switch_speed(*args):
+            global t
+            t = speed_slider.value
+        speed_slider.observe(switch_speed)
+        switch_speed()
+        
+        
+        #Defines final app UI printed in the jupyter notebook
         finalUI = widgets.VBox([
-                                UI.box0,
+                                tabs,
                                 UI.hidden_box,
-                                UI.box1,
-                                UI.box2,
-                                UI.box3,
-                                UI.box4,
-                                UI.box5,
+                                speed_slider,
                                 UI.hidden_box,
                                 UI.box_start
                                ])
+        
+        #launch worker class functions when pressing UI buttons
+        UI.ctrlfile_button.on_click(worker.open_ctrl_file)
+        UI.start_button.on_click(worker.launch_regtest)
+        
         return finalUI
+        
+        
+        
+       
 
 
         
